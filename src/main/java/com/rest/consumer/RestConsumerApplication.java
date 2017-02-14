@@ -29,7 +29,12 @@ public class RestConsumerApplication {
 		SpringApplication.run(RestConsumerApplication.class, args);
 
 		try {
+			// Implemented CRUD operation
 			postEntity();
+			getEntity();
+			deleteEntity();
+			getEntity();
+			updateEntity();
 			getEntity();
 		} catch (IOException e) {
 			log.error("Error Occured while consuming REST API ", e);
@@ -103,6 +108,58 @@ public class RestConsumerApplication {
 
 		if (getResponse.getBody() != null) {
 			log.info("Response for Get Request: " + getResponse.getBody());
+
+		} else {
+			log.info("Response for Get Request: NULL");
+		}
+	}
+	
+	public static void deleteEntity() throws JsonParseException, JsonMappingException, IOException {
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		String getUrl = "http://localhost:8085/person/deletePerson/3";
+		restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor("admin", "admin"));
+		HttpEntity<String> entity = new HttpEntity<String>(headers);
+
+		ResponseEntity<String> getResponse = restTemplate.exchange(getUrl, HttpMethod.DELETE, entity, String.class);
+
+		if (getResponse.getBody() != null) {
+			log.info("Response for Get Request: " + getResponse.getBody());
+
+		} else {
+			log.info("Response for Get Request: NULL");
+		}
+	}
+	
+	public static void updateEntity() throws JsonParseException, JsonMappingException, IOException {
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		String getUrl = "http://localhost:8085/person/updatePerson";
+		restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor("admin", "admin"));
+
+		
+		Person p2 = new Person();
+		p2.setId("4");
+		p2.setName("Test4 Update");
+		p2.setCity("New Delhi");
+		/*List<Person> persons = new ArrayList<>();
+		persons.add(p2);*/
+		ObjectMapper mapper = new ObjectMapper();
+		String value = mapper.writeValueAsString(p2);
+		/*
+		 * value = value.replace("[", ""); value = value.replace("]", "");
+		 */
+
+		HttpEntity<String> entity = new HttpEntity<String>(value, headers);
+
+		ResponseEntity<String> getResponse = restTemplate.exchange(getUrl, HttpMethod.PUT, entity, String.class);
+
+		if (getResponse.getBody() != null) {
+			log.info("After Update Response for put Request: " + getResponse.getBody());
 
 		} else {
 			log.info("Response for Get Request: NULL");
