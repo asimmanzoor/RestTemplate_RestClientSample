@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -24,7 +25,8 @@ import com.spring.rest.security.model.Person;
 @SpringBootApplication
 public class RestConsumerApplication {
 	private final static org.slf4j.Logger log = LoggerFactory.getLogger(RestConsumerApplication.class);
-	//private RestConsumerApplication() {}
+
+	// private RestConsumerApplication() {}
 	public static void main(String[] args) {
 		SpringApplication.run(RestConsumerApplication.class, args);
 
@@ -35,6 +37,8 @@ public class RestConsumerApplication {
 			deleteEntity();
 			getEntity();
 			updateEntity();
+			getEntity();
+			deleteEntityByRequestParam();
 			getEntity();
 		} catch (IOException e) {
 			log.error("Error Occured while consuming REST API ", e);
@@ -54,21 +58,19 @@ public class RestConsumerApplication {
 		ResponseEntity<String> getResponse = restTemplate.exchange(getUrl, HttpMethod.GET, entity, String.class);
 
 		if (getResponse.getBody() != null) {
-			ObjectMapper mapper = new ObjectMapper();
-			List<Person> persons = new ArrayList<>();
-			try {
-				persons = mapper.readValue(getResponse.getBody(),
-						mapper.getTypeFactory().constructCollectionType(List.class, Person.class));
-			} catch (JsonParseException e) {
-				log.error(e.getMessage());
-			} catch (JsonMappingException e) {
-				log.error(e.getMessage());
-			} catch (IOException e) {
-				log.error(e.getMessage());
-			}
-			persons.stream().map(p -> p.getName()).forEach(System.out::println);
-			log.info("Response for Get Request: "
-					+ getResponse.getBody());
+			/*
+			 * ObjectMapper mapper = new ObjectMapper(); List<Person> persons =
+			 * new ArrayList<>(); try { persons =
+			 * mapper.readValue(getResponse.getBody(),
+			 * mapper.getTypeFactory().constructCollectionType(List.class,
+			 * Person.class)); } catch (JsonParseException e) {
+			 * log.error(e.getMessage()); } catch (JsonMappingException e) {
+			 * log.error(e.getMessage()); } catch (IOException e) {
+			 * log.error(e.getMessage()); }
+			 */
+			// persons.stream().map(p ->
+			// p.getName()).forEach(System.out::println);
+			log.info("Response for Get Request: " + getResponse.getBody());
 
 		} else {
 			log.info("Response for Get Request: NULL");
@@ -113,7 +115,7 @@ public class RestConsumerApplication {
 			log.info("Response for Get Request: NULL");
 		}
 	}
-	
+
 	public static void deleteEntity() throws JsonParseException, JsonMappingException, IOException {
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
@@ -132,7 +134,33 @@ public class RestConsumerApplication {
 			log.info("Response for Get Request: NULL");
 		}
 	}
-	
+
+	public static void deleteEntityByRequestParam() throws JsonParseException, JsonMappingException, IOException {
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		String getUrl = "http://localhost:8085/person/deletePersonByParam";
+		// Query parameters
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getUrl)
+				// Add query parameter
+				.queryParam("id", "2");
+
+		log.info("URI : " + builder.buildAndExpand().toUri().toString());
+
+		restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor("admin", "admin"));
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<String> getResponse = restTemplate.exchange(builder.buildAndExpand().toUri(), HttpMethod.DELETE,
+				entity, String.class);
+
+		if (getResponse.getBody() != null) {
+			log.info("Response for delete of id 2 : " + getResponse.getBody());
+
+		} else {
+			log.info("Response for Get Request: NULL");
+		}
+	}
+
 	public static void updateEntity() throws JsonParseException, JsonMappingException, IOException {
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
@@ -141,13 +169,13 @@ public class RestConsumerApplication {
 		String getUrl = "http://localhost:8085/person/updatePerson";
 		restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor("admin", "admin"));
 
-		
 		Person p2 = new Person();
 		p2.setId("4");
 		p2.setName("Test4 Update");
 		p2.setCity("New Delhi");
-		/*List<Person> persons = new ArrayList<>();
-		persons.add(p2);*/
+		/*
+		 * List<Person> persons = new ArrayList<>(); persons.add(p2);
+		 */
 		ObjectMapper mapper = new ObjectMapper();
 		String value = mapper.writeValueAsString(p2);
 		/*
